@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Sonata\FormatterBundle\Block;
 
-use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\BlockBundle\Block\BlockContextInterface;
-use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Block\Service\AbstractBlockService;
+use Sonata\BlockBundle\Block\Service\EditableBlockService;
+use Sonata\BlockBundle\Form\Mapper\FormMapper;
 use Sonata\BlockBundle\Meta\Metadata;
+use Sonata\BlockBundle\Meta\MetadataInterface;
 use Sonata\BlockBundle\Model\BlockInterface;
 use Sonata\Form\Type\ImmutableArrayType;
+use Sonata\Form\Validator\ErrorElement;
 use Sonata\FormatterBundle\Form\Type\FormatterType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +30,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
-final class FormatterBlockService extends AbstractAdminBlockService
+final class FormatterBlockService extends AbstractBlockService implements EditableBlockService
 {
     public function execute(BlockContextInterface $blockContext, ?Response $response = null): Response
     {
@@ -37,7 +40,12 @@ final class FormatterBlockService extends AbstractAdminBlockService
         ], $response);
     }
 
-    public function buildEditForm(FormMapper $formMapper, BlockInterface $block): void
+    public function configureCreateForm(FormMapper $form, BlockInterface $block): void
+    {
+        $this->configureEditForm($form, $block);
+    }
+
+    public function configureEditForm(FormMapper $formMapper, BlockInterface $block)
     {
         $formMapper->add('settings', ImmutableArrayType::class, [
             'keys' => [
@@ -65,12 +73,16 @@ final class FormatterBlockService extends AbstractAdminBlockService
         ]);
     }
 
-    public function getBlockMetadata($code = null): Metadata
+    public function validate(ErrorElement $errorElement, BlockInterface $block)
+    {
+    }
+
+    public function getMetadata(): MetadataInterface
     {
         return new Metadata(
-            $this->getName(),
-            null !== $code ? $code : $this->getName(),
-            false,
+            'sonata.formatter.block.formatter',
+            null,
+            null,
             'SonataFormatterBundle',
             ['class' => 'fa fa-file-text-o']
         );

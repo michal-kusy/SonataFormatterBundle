@@ -32,18 +32,19 @@ class FormatterBlockServiceTest extends BlockServiceTestCase
             'template' => '@SonataFormatter/Block/block_formatter.html.twig',
         ]);
 
-        $blockService = new FormatterBlockService('block.service', $this->templating);
+        $this->twig->expects($this->once())
+            ->method('render')
+            ->with($this->equalTo('@SonataFormatter/Block/block_formatter.html.twig'), $this->callback(static function ($parameters) {
+                return \is_array($parameters['settings']) && $parameters['block'] instanceof BlockInterface;
+            }));
+
+        $blockService = new FormatterBlockService($this->twig);
         $blockService->execute($blockContext);
-
-        $this->assertSame('@SonataFormatter/Block/block_formatter.html.twig', $this->templating->view);
-
-        $this->assertIsArray($this->templating->parameters['settings']);
-        $this->assertInstanceOf(BlockInterface::class, $this->templating->parameters['block']);
     }
 
     public function testDefaultSettings(): void
     {
-        $blockService = new FormatterBlockService('block.service', $this->templating);
+        $blockService = new FormatterBlockService($this->twig);
         $blockContext = $this->getBlockContext($blockService);
 
         $this->assertSettings([
