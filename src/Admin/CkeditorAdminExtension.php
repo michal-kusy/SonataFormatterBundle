@@ -15,7 +15,7 @@ namespace Sonata\FormatterBundle\Admin;
 
 use Sonata\AdminBundle\Admin\AbstractAdminExtension;
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\Route\RouteCollection;
+use Sonata\AdminBundle\Route\RouteCollectionInterface;
 
 /**
  * Adds browser and upload routes to the Admin.
@@ -24,7 +24,7 @@ use Sonata\AdminBundle\Route\RouteCollection;
  */
 final class CkeditorAdminExtension extends AbstractAdminExtension
 {
-    public function configureRoutes(AdminInterface $admin, RouteCollection $collection): void
+    public function configureRoutes(AdminInterface $admin, RouteCollectionInterface $collection): void
     {
         $collection->add('ckeditor_browser', 'ckeditor_browser', [
             '_controller' => 'SonataFormatterBundle:CkeditorAdmin:browser',

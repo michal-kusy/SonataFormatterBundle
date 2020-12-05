@@ -13,10 +13,8 @@ declare(strict_types=1);
 
 namespace Sonata\FormatterBundle\Form\Type;
 
-use FOS\CKEditorBundle\Model\ConfigManagerInterface;
-use FOS\CKEditorBundle\Model\PluginManagerInterface;
-use FOS\CKEditorBundle\Model\TemplateManagerInterface;
-use FOS\CKEditorBundle\Model\ToolbarManagerInterface;
+use FOS\CKEditorBundle\Config\CKEditorConfigurationInterface;
+use FOS\CKEditorBundle\Exception\ConfigException;
 use Sonata\FormatterBundle\Form\EventListener\FormatterListener;
 use Sonata\FormatterBundle\Formatter\PoolInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -29,7 +27,7 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class FormatterType extends AbstractType
 {
@@ -44,39 +42,19 @@ final class FormatterType extends AbstractType
     protected $translator;
 
     /**
-     * @var ConfigManagerInterface
+     * @var CKEditorConfigurationInterface
      */
-    protected $configManager;
+    protected $editorConfiguration;
 
-    /**
-     * @var PluginManagerInterface
-     */
-    protected $pluginManager;
-
-    /**
-     * @var TemplateManagerInterface
-     */
-    private $templateManager;
-
-    /**
-     * @var ToolbarManagerInterface
-     */
-    private $toolbarManager;
 
     public function __construct(
         PoolInterface $pool,
         TranslatorInterface $translator,
-        ConfigManagerInterface $configManager,
-        PluginManagerInterface $pluginManager,
-        TemplateManagerInterface $templateManager,
-        ToolbarManagerInterface $toolbarManager
+        CKEditorConfigurationInterface $editorConfiguration
     ) {
         $this->pool = $pool;
         $this->translator = $translator;
-        $this->configManager = $configManager;
-        $this->pluginManager = $pluginManager;
-        $this->templateManager = $templateManager;
-        $this->toolbarManager = $toolbarManager;
+        $this->editorConfiguration = $editorConfiguration;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -156,11 +134,11 @@ final class FormatterType extends AbstractType
 
         $view->vars['format_field_options'] = $options['format_field_options'];
 
-        $defaultConfig = $this->configManager->getDefaultConfig();
+        $defaultConfig = $this->editorConfiguration->getDefaultConfig();
 
-        if ($this->configManager->hasConfig($defaultConfig)) {
-            $ckeditorConfiguration = $this->configManager->getConfig($defaultConfig);
-        } else {
+        try {
+            $ckeditorConfiguration = $this->editorConfiguration->getConfig($defaultConfig);
+        } catch (ConfigException $e) {
             $ckeditorConfiguration = [];
         }
 
@@ -169,7 +147,7 @@ final class FormatterType extends AbstractType
         }
 
         if ($options['ckeditor_context']) {
-            $contextConfig = $this->configManager->getConfig($options['ckeditor_context']);
+            $contextConfig = $this->editorConfiguration->getConfig($options['ckeditor_context']);
             $ckeditorConfiguration = array_merge($ckeditorConfiguration, $contextConfig);
         }
 
@@ -177,16 +155,18 @@ final class FormatterType extends AbstractType
             $ckeditorConfiguration['filebrowserImageUploadRouteParameters']['format'] = $options['ckeditor_image_format'];
         }
 
-        if ($this->pluginManager->hasPlugins()) {
-            $options['ckeditor_plugins'] = $this->pluginManager->getPlugins();
+        $plugins = $this->editorConfiguration->getPlugins();
+        if ($plugins !== []) {
+            $options['ckeditor_plugins'] = $plugins;
         }
 
-        if ($this->templateManager->hasTemplates()) {
-            $options['ckeditor_templates'] = $this->templateManager->getTemplates();
+        $templates = $this->editorConfiguration->getTemplates();
+        if ($templates !== []) {
+            $options['ckeditor_templates'] = $templates;
         }
 
         if (\is_string($ckeditorConfiguration['toolbar'])) {
-            $ckeditorConfiguration['toolbar'] = $this->toolbarManager->resolveToolbar($ckeditorConfiguration['toolbar']);
+            $ckeditorConfiguration['toolbar'] = $this->editorConfiguration->getToolbar($ckeditorConfiguration['toolbar']);
         }
 
         $view->vars['ckeditor_configuration'] = $ckeditorConfiguration;

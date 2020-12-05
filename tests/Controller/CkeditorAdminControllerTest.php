@@ -15,8 +15,10 @@ namespace Sonata\FormatterBundle\Tests\Controller;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Sonata\AdminBundle\Admin\BreadcrumbsBuilderInterface;
 use Sonata\AdminBundle\Admin\Pool as AdminPool;
 use Sonata\AdminBundle\Datagrid\DatagridInterface;
+use Sonata\AdminBundle\Templating\MutableTemplateRegistry;
 use Sonata\AdminBundle\Templating\TemplateRegistry;
 use Sonata\AdminBundle\Templating\TemplateRegistryInterface;
 use Sonata\FormatterBundle\Controller\CkeditorAdminController;
@@ -26,7 +28,6 @@ use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Provider\Pool as MediaPool;
-use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormRenderer;
@@ -35,6 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
+use Symfony\Component\Templating\EngineInterface;
 
 class EntityWithGetId
 {
@@ -52,13 +54,16 @@ class CkeditorAdminControllerTest extends TestCase
     private $admin;
     private $request;
     private $controller;
+    private $twig;
 
     protected function setUp(): void
     {
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(BaseMediaAdmin::class);
         $this->request = $this->prophesize(Request::class);
+        $this->twig = $this->prophesize(\Twig_Environment::class);
 
+        $this->configureTwig();
         $this->configureCRUDController();
 
         $this->controller = new CkeditorAdminController();
@@ -143,6 +148,16 @@ class CkeditorAdminControllerTest extends TestCase
         $pool = $this->prophesize(AdminPool::class);
         $breadcrumbsBuilder = $this->prophesize(BreadcrumbsBuilderInterface::class);
 
+        if (interface_exists(TemplateRegistryInterface::class)) {
+            $registry = new MutableTemplateRegistry();
+            $registry->setTemplate('layout', 'layout.html.twig');
+
+            $this->container->get('admin_code.template_registry')->willReturn($registry);
+            $this->admin->getCode()->willReturn('admin_code');
+            $this->admin->reveal()->setTemplateRegistry($registry);
+
+        }
+
         $this->configureGetCurrentRequest($this->request->reveal());
         $pool->getAdminByAdminCode('admin_code')->willReturn($this->admin->reveal());
         $this->request->isXmlHttpRequest()->willReturn(false);
@@ -151,14 +166,12 @@ class CkeditorAdminControllerTest extends TestCase
         $this->request->get('uniqid')->shouldBeCalled();
         $this->container->get('sonata.admin.pool')->willReturn($pool->reveal());
         $this->container->get('sonata.admin.breadcrumbs_builder')->willReturn($breadcrumbsBuilder->reveal());
-        $this->admin->getTemplate('layout')->willReturn('layout.html.twig');
+        //FIX $this->admin->getTemplate('layout')->willReturn('layout.html.twig');
+
         $this->admin->isChild()->willReturn(false);
         $this->admin->setRequest($this->request->reveal())->shouldBeCalled();
 
-        if (interface_exists(TemplateRegistryInterface::class)) {
-            $this->container->get('admin_code.template_registry')->willReturn(new TemplateRegistry());
-            $this->admin->getCode()->willReturn('admin_code');
-        }
+
     }
 
     private function configureGetCurrentRequest($request): void
@@ -172,14 +185,8 @@ class CkeditorAdminControllerTest extends TestCase
 
     private function configureSetFormTheme($formView, array $formTheme): void
     {
-        $twig = $this->prophesize(\Twig_Environment::class);
-
         $twigRenderer = $this->prophesize(FormRenderer::class);
-
-        $this->container->get('twig')->willReturn($twig->reveal());
-
-        $twig->getRuntime(FormRenderer::class)->willReturn($twigRenderer->reveal());
-
+        $this->twig->getRuntime(FormRenderer::class)->willReturn($twigRenderer->reveal());
         $twigRenderer->setTheme($formView, $formTheme)->shouldBeCalled();
     }
 
@@ -196,7 +203,16 @@ class CkeditorAdminControllerTest extends TestCase
         $this->container->getParameter('sonata.formatter.ckeditor.configuration.templates')
             ->willReturn(['browser' => $template, 'upload' => $template]);
         $response->getContent()->willReturn($rendered);
-        $templating->renderResponse($template, $data, null)->willReturn($response->reveal());
+
+        //TODO templating seems to be unused in Sf5
         $templating->render($template, $data)->willReturn($rendered);
+        $this->twig->render($template, $data)->willReturn($rendered);
+    }
+
+    private function configureTwig(): void
+    {
+        $this->container->has('twig')->willReturn(true);
+        $this->container->get('twig')->willReturn($this->twig->reveal());
+
     }
 }

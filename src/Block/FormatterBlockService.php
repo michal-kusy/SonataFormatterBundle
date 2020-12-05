@@ -45,7 +45,7 @@ final class FormatterBlockService extends AbstractBlockService implements Editab
         $this->configureEditForm($form, $block);
     }
 
-    public function configureEditForm(FormMapper $formMapper, BlockInterface $block)
+    public function configureEditForm(FormMapper $formMapper, BlockInterface $block): void
     {
         $formMapper->add('settings', ImmutableArrayType::class, [
             'keys' => [
@@ -73,7 +73,7 @@ final class FormatterBlockService extends AbstractBlockService implements Editab
         ]);
     }
 
-    public function validate(ErrorElement $errorElement, BlockInterface $block)
+    public function validate(ErrorElement $errorElement, BlockInterface $block): void
     {
     }
 

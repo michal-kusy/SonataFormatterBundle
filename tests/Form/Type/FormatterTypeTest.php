@@ -13,10 +13,7 @@ declare(strict_types=1);
 
 namespace Sonata\FormatterBundle\Tests\Form\Type;
 
-use FOS\CKEditorBundle\Model\ConfigManagerInterface;
-use FOS\CKEditorBundle\Model\PluginManagerInterface;
-use FOS\CKEditorBundle\Model\TemplateManagerInterface;
-use FOS\CKEditorBundle\Model\ToolbarManagerInterface;
+use FOS\CKEditorBundle\Config\CKEditorConfigurationInterface;
 use PHPUnit\Framework\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sonata\FormatterBundle\Form\Type\FormatterType;
@@ -29,7 +26,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @author Hugo Briand <briand@ekino.com>
@@ -47,24 +44,9 @@ class FormatterTypeTest extends TestCase
     private $translator;
 
     /**
-     * @var ConfigManagerInterface|MockObject
+     * @var CKEditorConfigurationInterface|MockObject
      */
-    private $configManager;
-
-    /**
-     * @var PluginManagerInterface|MockObject
-     */
-    private $pluginManager;
-
-    /**
-     * @var TemplateManagerInterface|MockObject
-     */
-    private $templateManager;
-
-    /**
-     * @var ToolbarManagerInterface|MockObject
-     */
-    private $toolbarManager;
+    private $editorConfiguration;
 
     /**
      * @var FormatterType
@@ -78,18 +60,12 @@ class FormatterTypeTest extends TestCase
         $this->pool = new Pool('');
 
         $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->configManager = $this->createMock(ConfigManagerInterface::class);
-        $this->pluginManager = $this->createMock(PluginManagerInterface::class);
-        $this->templateManager = $this->createMock(TemplateManagerInterface::class);
-        $this->toolbarManager = $this->createMock(ToolbarManagerInterface::class);
+        $this->editorConfiguration = $this->createMock(CKEditorConfigurationInterface::class);
 
         $this->formType = new FormatterType(
             $this->pool,
             $this->translator,
-            $this->configManager,
-            $this->pluginManager,
-            $this->templateManager,
-            $this->toolbarManager
+            $this->editorConfiguration
         );
     }
 
@@ -277,12 +253,8 @@ class FormatterTypeTest extends TestCase
     {
         $defaultConfig = 'default';
         $defaultConfigValues = ['toolbar' => ['Button1']];
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(true);
-        $this->configManager->expects($this->once())
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+        $this->editorConfiguration->expects($this->once())
             ->method('getConfig')
             ->with($defaultConfig)
             ->willReturn($defaultConfigValues);
@@ -310,11 +282,7 @@ class FormatterTypeTest extends TestCase
     public function testBuildViewWithoutDefaultConfig(): void
     {
         $defaultConfig = 'default';
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(false);
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
 
         $ckEditorToolBarIcons = ['Icon 1'];
 
@@ -343,12 +311,8 @@ class FormatterTypeTest extends TestCase
     {
         $defaultConfig = 'default';
         $defaultConfigValues = ['toolbar' => ['Button 1']];
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(true);
-        $this->configManager->expects($this->once())
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+        $this->editorConfiguration->expects($this->once())
             ->method('getConfig')
             ->with($defaultConfig)
             ->willReturn($defaultConfigValues);
@@ -377,6 +341,9 @@ class FormatterTypeTest extends TestCase
 
     public function testBuildViewWithFormatter(): void
     {
+        $defaultConfig = 'default';
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+
         $ckEditorToolBarIcons = ['Icon 1'];
 
         $formatters = [];
@@ -412,12 +379,8 @@ class FormatterTypeTest extends TestCase
     {
         $defaultConfig = 'default';
         $defaultConfigValues = ['toolbar' => ['Button1']];
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(true);
-        $this->configManager->expects($this->once())
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+        $this->editorConfiguration->expects($this->once())
             ->method('getConfig')
             ->with($defaultConfig)
             ->willReturn($defaultConfigValues);
@@ -448,17 +411,13 @@ class FormatterTypeTest extends TestCase
         $toolbar_config = 'custom_toolbar';
         $defaultConfigValues = ['toolbar' => $toolbar_config];
         $custom_toolbar = ['Button 1'];
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(true);
-        $this->configManager->expects($this->once())
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+        $this->editorConfiguration->expects($this->once())
             ->method('getConfig')
             ->with($defaultConfig)
             ->willReturn($defaultConfigValues);
-        $this->toolbarManager->expects($this->once())
-            ->method('resolveToolbar')
+        $this->editorConfiguration->expects($this->once())
+            ->method('getToolbar')
             ->with($toolbar_config)
             ->willReturn($custom_toolbar);
 
@@ -486,12 +445,8 @@ class FormatterTypeTest extends TestCase
     {
         $defaultConfig = 'default';
         $defaultConfigValues = ['toolbar' => ['Button1']];
-        $this->configManager->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
-        $this->configManager->expects($this->once())
-            ->method('hasConfig')
-            ->with($defaultConfig)
-            ->willReturn(true);
-        $this->configManager->expects($this->once())
+        $this->editorConfiguration->expects($this->once())->method('getDefaultConfig')->willReturn($defaultConfig);
+        $this->editorConfiguration->expects($this->once())
             ->method('getConfig')
             ->with($defaultConfig)
             ->willReturn($defaultConfigValues);
@@ -508,8 +463,7 @@ class FormatterTypeTest extends TestCase
             ],
         ];
 
-        $this->templateManager->expects($this->once())->method('hasTemplates')->willReturn(true);
-        $this->templateManager->expects($this->once())->method('getTemplates')->willReturn($templates);
+        $this->editorConfiguration->expects($this->once())->method('getTemplates')->willReturn($templates);
 
         /** @var FormView $view */
         $view = $this->createMock(FormView::class);
