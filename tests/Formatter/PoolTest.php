@@ -21,6 +21,7 @@ use Twig\Environment;
 use Twig\Error\SyntaxError;
 use Twig\Sandbox\SecurityError;
 use Twig\Template;
+use Twig\TemplateWrapper;
 
 class PoolTest extends TestCase
 {
@@ -28,11 +29,11 @@ class PoolTest extends TestCase
     {
         $formatter = new RawFormatter();
         $env = $this->createMock(Environment::class);
-        $template = $this->createMock(Template::class);
+        $template = $this->createMock(TemplateForTest::class);
 
         $template->expects($this->once())->method('render')->willReturn('Salut');
 
-        $env->expects($this->once())->method('createTemplate')->willReturn($template);
+        $env->expects($this->once())->method('createTemplate')->willReturn(new TemplateWrapper($env, $template));
 
         $pool = $this->getPool();
 
@@ -57,13 +58,13 @@ class PoolTest extends TestCase
     {
         $formatter = new RawFormatter();
         $env = $this->createMock(Environment::class);
-        $template = $this->createMock(Template::class);
+        $template = $this->createMock(TemplateForTest::class);
 
         $template->expects($this->once())
             ->method('render')
             ->will($this->throwException(new SyntaxError('Error')));
 
-        $env->expects($this->once())->method('createTemplate')->willReturn($template);
+        $env->expects($this->once())->method('createTemplate')->willReturn(new TemplateWrapper($env, $template));
 
         $pool = $this->getPool();
         $pool->add('foo', $formatter, $env);
@@ -75,13 +76,13 @@ class PoolTest extends TestCase
     {
         $formatter = new RawFormatter();
         $env = $this->createMock(Environment::class);
-        $template = $this->createMock(Template::class);
+        $template = $this->createMock(TemplateForTest::class);
 
         $template->expects($this->once())
             ->method('render')
             ->will($this->throwException(new SecurityError('Error')));
 
-        $env->expects($this->once())->method('createTemplate')->willReturn($template);
+        $env->expects($this->once())->method('createTemplate')->willReturn(new TemplateWrapper($env, $template));
 
         $pool = $this->getPool();
         $pool->add('foo', $formatter, $env);
@@ -95,13 +96,13 @@ class PoolTest extends TestCase
 
         $formatter = new RawFormatter();
         $env = $this->createMock(Environment::class);
-        $template = $this->createMock(Template::class);
+        $template = $this->createMock(TemplateForTest::class);
 
         $template->expects($this->once())
             ->method('render')
             ->will($this->throwException(new \RuntimeException('Error')));
 
-        $env->expects($this->once())->method('createTemplate')->willReturn($template);
+        $env->expects($this->once())->method('createTemplate')->willReturn(new TemplateWrapper($env, $template));
 
         $pool = $this->getPool();
         $pool->add('foo', $formatter, $env);

@@ -15,6 +15,9 @@ namespace Sonata\FormatterBundle\Tests\Formatter;
 
 use PHPUnit\Framework\TestCase;
 use Sonata\FormatterBundle\Formatter\TwigFormatter;
+use Twig\Environment;
+use Twig\Loader\LoaderInterface;
+use Twig\Source;
 
 class TwigFormatterTest extends TestCase
 {
@@ -26,7 +29,7 @@ class TwigFormatterTest extends TestCase
     public function testFormatter(): void
     {
         $loader = new MyStringLoader();
-        $twig = new \Twig_Environment($loader);
+        $twig = new Environment($loader);
 
         $formatter = new TwigFormatter($twig);
 
@@ -45,7 +48,7 @@ class TwigFormatterTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         $loader = new MyStringLoader();
-        $twig = new \Twig_Environment($loader);
+        $twig = new Environment($loader);
 
         $formatter = new TwigFormatter($twig);
 
@@ -55,7 +58,7 @@ class TwigFormatterTest extends TestCase
     public function testGetFormatterExtension(): void
     {
         $loader = new MyStringLoader();
-        $twig = new \Twig_Environment($loader);
+        $twig = new Environment($loader);
 
         $formatter = new TwigFormatter($twig);
 
@@ -65,29 +68,24 @@ class TwigFormatterTest extends TestCase
     }
 }
 
-class MyStringLoader implements \Twig_LoaderInterface
+class MyStringLoader implements LoaderInterface
 {
-    public function getSourceContext($name)
+    public function getSourceContext(string $name): Source
+    {
+        return new Source('', $name);
+    }
+
+    public function getCacheKey(string $name): string
     {
         return $name;
     }
 
-    public function getSource($name)
-    {
-        return $name;
-    }
-
-    public function getCacheKey($name)
-    {
-        return $name;
-    }
-
-    public function isFresh($name, $time)
+    public function isFresh(string $name, int $time): bool
     {
         return true;
     }
 
-    public function exists($name)
+    public function exists(string $name)
     {
         return true;
     }

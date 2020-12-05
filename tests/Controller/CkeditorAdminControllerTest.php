@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\Templating\EngineInterface;
+use Twig\Environment;
 
 class EntityWithGetId
 {
@@ -61,7 +62,7 @@ class CkeditorAdminControllerTest extends TestCase
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(BaseMediaAdmin::class);
         $this->request = $this->prophesize(Request::class);
-        $this->twig = $this->prophesize(\Twig_Environment::class);
+        $this->twig = $this->prophesize(Environment::class);
 
         $this->configureTwig();
         $this->configureCRUDController();

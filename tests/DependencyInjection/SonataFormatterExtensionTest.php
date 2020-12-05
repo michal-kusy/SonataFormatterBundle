@@ -84,7 +84,7 @@ class SonataFormatterExtensionTest extends AbstractExtensionTestCase
         $this->setParameter('kernel.bundles', []);
         $this->load();
         $this->assertInstanceOf(
-            '\Twig_LoaderInterface',
+            '\Twig\Loader\LoaderInterface',
             $this->container->get('sonata.formatter.twig.loader.text')
         );
     }
