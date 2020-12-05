@@ -122,7 +122,7 @@ final class SonataFormatterExtension extends Extension
         ]);
         $loaderSelector->setPublic(false);
 
-        $env = new Definition('Twig_Environment', [$loaderSelector, [
+        $env = new Definition(\Twig\Environment::class, [$loaderSelector, [
             'debug' => false,
             'strict_variables' => false,
             'charset' => 'UTF-8',
