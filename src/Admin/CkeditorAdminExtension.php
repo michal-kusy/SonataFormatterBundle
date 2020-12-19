@@ -27,11 +27,11 @@ final class CkeditorAdminExtension extends AbstractAdminExtension
     public function configureRoutes(AdminInterface $admin, RouteCollectionInterface $collection): void
     {
         $collection->add('ckeditor_browser', 'ckeditor_browser', [
-            '_controller' => 'SonataFormatterBundle:CkeditorAdmin:browser',
+            '_controller' => 'Sonata\FormatterBundle\Controller\CkeditorAdminController::browserAction',
         ]);
 
         $collection->add('ckeditor_upload', 'ckeditor_upload', [
-            '_controller' => 'SonataFormatterBundle:CkeditorAdmin:upload',
+            '_controller' => 'Sonata\FormatterBundle\Controller\CkeditorAdminController::uploadAction',
         ]);
     }
 }
