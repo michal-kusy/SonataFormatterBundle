@@ -49,7 +49,7 @@ file that was distributed with this source code.
     {% import _self as tree %}
     {% if root and collection|length == 0 %}
         <div>
-            <p class="bg-warning">{{ admin.trans('warning_no_category', {}, admin.translationdomain) }}</p>
+            <p class="bg-warning">{{ 'warning_no_category'|trans({}, admin.translationDomain) }}</p>
         </div>
     {% endif %}
     <ul{% if root %} class="sonata-tree sonata-tree--small js-treeview sonata-tree--toggleable"{% endif %}>
@@ -100,13 +100,13 @@ file that was distributed with this source code.
                                                 {% set sort_by              = current ? admin.datagrid.values._sort_order : field_description.options._sort_order %}
                                             {% endif %}
 
-                                            {% spaceless %}
+                                            {% apply spaceless %}
                                                 <th class="sonata-ba-list-field-header-{{ field_description.type}} {% if sortable %} sonata-ba-list-field-header-order-{{ sort_by|lower }} {{ sort_active_class }}{% endif %}">
                                                     {% if sortable %}<a href="{{ admin.generateUrl('ckeditor_browser', sort_parameters) }}">{% endif %}
-                                                        {{ admin.trans(field_description.label) }}
+                                                        {{ field_description.label | trans }}
                                                         {% if sortable %}</a>{% endif %}
                                                 </th>
-                                            {% endspaceless %}
+                                            {% endapply %}
                                         {% endif %}
                                     {% endfor %}
                                 </tr>
@@ -162,7 +162,7 @@ file that was distributed with this source code.
                                         {% endblock %}
 
                                         {% block num_results %}
-                                            {% transchoice admin.datagrid.pager.nbresults with {'%count%': admin.datagrid.pager.nbresults} from 'SonataAdminBundle' %}list_results_count{% endtranschoice %}
+                                            {% trans with {'%count%': admin.datagrid.pager.nbresults} from 'SonataAdminBundle' %}list_results_count{% endtrans %}
                                             &nbsp;-&nbsp;
                                         {% endblock %}
 
@@ -233,12 +233,14 @@ file that was distributed with this source code.
                     </a>
 
                 <ul class="dropdown-menu" role="menu">
-                        {% for filter in admin.datagrid.filters if (filter.options['show_filter'] is same as(true) or filter.options['show_filter'] is null) %}
+                        {% for filter in admin.datagrid.filters %}
+                            {% if (filter.options['show_filter'] is same as(true) or filter.options['show_filter'] is null) %}
                         <li>
                             <a href="#" class="sonata-toggle-filter sonata-ba-action" filter-target="filter-{{ admin.uniqid }}-{{ filter.name }}" filter-container="filter-container-{{ admin.uniqid() }}">
-                                    <i class="fa {{ (filter.isActive() or filter.options['show_filter']) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>{{ admin.trans(filter.label, {}, filter.translationDomain) }}
+                                    <i class="fa {{ (filter.isActive() or filter.options['show_filter']) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>{{ filter.label|trans({}, filter.translationDomain) }}
                             </a>
                         </li>
+                            {% endif %}
                     {% endfor %}
                 </ul>
             </li>
@@ -248,7 +250,7 @@ file that was distributed with this source code.
 
 {% block list_filters %}
     {% if admin.datagrid.filters %}
-        {% form_theme form admin.getTemplate('filter') %}
+        {% form_theme form admin.templateRegistry.getTemplate('filter') %}
 
         <div class="col-xs-12 col-md-12 sonata-filters-box" style="display: {{ admin.datagrid.hasDisplayableFilters ? 'block' : 'none' }}" id="filter-container-{{ admin.uniqid() }}">
             <div class="box box-primary" >
@@ -261,7 +263,7 @@ file that was distributed with this source code.
                                 {% for filter in admin.datagrid.filters %}
                                     <div class="form-group" id="filter-{{ admin.uniqid }}-{{ filter.name }}" sonata-filter="{{ (filter.options['show_filter'] is same as(true) or filter.options['show_filter'] is null) ? 'true' : 'false' }}" style="display: {% if (filter.isActive() and filter.options['show_filter'] is null) or (filter.options['show_filter'] is same as(true)) %}block{% else %}none{% endif %}">
                                         {% if filter.label is not same as(false) %}
-                                            <label for="{{ form.children[filter.formName].children['value'].vars.id }}" class="col-sm-3 control-label">{{ admin.trans(filter.label, {}, filter.translationDomain) }}</label>
+                                            <label for="{{ form.children[filter.formName].children['value'].vars.id }}" class="col-sm-3 control-label">{{ filter.label|trans({}, filter.translationDomain) }}</label>
                                         {% endif %}
                                         {% set attr = form.children[filter.formName].children['type'].vars.attr|default({}) %}
 
