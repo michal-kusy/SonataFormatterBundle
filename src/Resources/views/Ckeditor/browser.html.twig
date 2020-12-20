@@ -86,55 +86,56 @@ file that was distributed with this source code.
                     <table class="table table-bordered table-striped">
                         {% block table_header %}
                             <thead>
-                                <tr class="sonata-ba-list-field-header">
-                                    {% for field_description in admin.list.elements %}
-                                        {% if field_description.getOption('code') == '_batch' or field_description.name == '_action' %}
-                                            {# Disable batch and actions #}
-                                        {% else %}
-                                            {% set sortable = false %}
-                                            {% if field_description.options.sortable is defined and field_description.options.sortable%}
-                                                {% set sortable             = true %}
-                                                {% set sort_parameters      = admin.modelmanager.sortparameters(field_description, admin.datagrid)|merge(ckParameters) %}
-                                                {% set current              = admin.datagrid.values._sort_by == field_description or admin.datagrid.values._sort_by.fieldName == sort_parameters.filter._sort_by %}
-                                                {% set sort_active_class    = current ? 'sonata-ba-list-field-order-active' : '' %}
-                                                {% set sort_by              = current ? admin.datagrid.values._sort_order : field_description.options._sort_order %}
-                                            {% endif %}
+                            <tr class="sonata-ba-list-field-header">
+                                {% for field_description in admin.list.elements %}
+                                    {% if field_description.getOption('code') == '_batch' or field_description.name == '_action' %}
+                                        {# Disable batch and actions #}
+                                    {% else %}
+                                        {% set sortable = false %}
+                                        {% if field_description.options.sortable is defined and field_description.options.sortable%}
+                                            {% set sortable             = true %}
 
-                                            {% apply spaceless %}
-                                                <th class="sonata-ba-list-field-header-{{ field_description.type}} {% if sortable %} sonata-ba-list-field-header-order-{{ sort_by|lower }} {{ sort_active_class }}{% endif %}">
-                                                    {% if sortable %}<a href="{{ admin.generateUrl('ckeditor_browser', sort_parameters) }}">{% endif %}
-                                                        {{ field_description.label | trans }}
-                                                        {% if sortable %}</a>{% endif %}
-                                                </th>
-                                            {% endapply %}
+                                            {% set sort_parameters      = admin.datagrid.sortparameters(field_description, admin.datagrid)|merge(ckParameters) %}
+                                            {% set current              = admin.datagrid.values._sort_by is defined and (admin.datagrid.values._sort_by == field_description or admin.datagrid.values._sort_by.fieldName == sort_parameters.filter._sort_by) %}
+                                            {% set sort_active_class    = current ? 'sonata-ba-list-field-order-active' : '' %}
+                                            {% set sort_by              = current ? admin.datagrid.values._sort_order : field_description.options._sort_order %}
                                         {% endif %}
-                                    {% endfor %}
-                                </tr>
+
+                                        {% apply spaceless %}
+                                            <th class="sonata-ba-list-field-header-{{ field_description.type}} {% if sortable %} sonata-ba-list-field-header-order-{{ sort_by|lower }} {{ sort_active_class }}{% endif %}">
+                                                {% if sortable %}<a href="{{ admin.generateUrl('ckeditor_browser', sort_parameters) }}">{% endif %}
+                                                    {{ field_description.label | trans }}
+                                                    {% if sortable %}</a>{% endif %}
+                                            </th>
+                                        {% endapply %}
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
                             </thead>
                         {% endblock %}
 
                         {% block table_body %}
                             <tbody>
-                                {% for object in admin.datagrid.results %}
-                                    <tr>
-                                        <td colspan="{{ (admin.list.elements|length) - 1}}">
-                                            <div>
-                                                <a href="{% path object, 'reference' %}" class="select" style="float: left; margin-right: 6px;">{% thumbnail object, 'admin' with {'width': 75, 'height': 60} %}</a>
+                            {% for object in admin.datagrid.results %}
+                                <tr>
+                                    <td colspan="{{ (admin.list.elements|length) - 1}}">
+                                        <div>
+                                            <a href="{% path object, 'reference' %}" class="select" style="float: left; margin-right: 6px;">{% thumbnail object, 'admin' with {'width': 75, 'height': 60} %}</a>
 
-                                                <strong><a href="{% path object, 'reference' %}" class="select">{{ object.name }}</a></strong> <br />
-                                                {{ object.providerName|trans({}, 'SonataMediaBundle') }}{% if object.width %}: {{ object.width }}{% if object.height %}x{{ object.height }}{% endif %}px{% endif %}
+                                            <strong><a href="{% path object, 'reference' %}" class="select">{{ object.name }}</a></strong> <br />
+                                            {{ object.providerName|trans({}, 'SonataMediaBundle') }}{% if object.width %}: {{ object.width }}{% if object.height %}x{{ object.height }}{% endif %}px{% endif %}
 
-                                                {% if formats[object.id]|length > 0 %}
-                                                    - {{ 'title.formats'|trans({}, 'SonataMediaBundle') }}:
-                                                    {% for name, format in formats[object.id] %}
-                                                        <a href="{% path object, name %}" class="select">{{ name }}</a> {% if format.width %}({{ format.width }}{% if format.height %}x{{ format.height }}{% endif %}px){% endif %}
-                                                    {% endfor %}
-                                                {% endif %}
-                                                <br />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
+                                            {% if formats[object.id]|length > 0 %}
+                                                - {{ 'title.formats'|trans({}, 'SonataMediaBundle') }}:
+                                                {% for name, format in formats[object.id] %}
+                                                    <a href="{% path object, name %}" class="select">{{ name }}</a> {% if format.width %}({{ format.width }}{% if format.height %}x{{ format.height }}{% endif %}px){% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                            <br />
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             </tbody>
                         {% endblock %}
 
@@ -227,20 +228,20 @@ file that was distributed with this source code.
         <ul class="nav navbar-nav navbar-right">
 
             <li class="dropdown sonata-actions">
-                    <a href="#" class="dropdown-toggle sonata-ba-action" data-toggle="dropdown">
-                        <i class="fa fa-filter"></i>
-                        {{ 'link_filters'|trans({}, 'SonataAdminBundle') }} <b class="caret"></b>
-                    </a>
+                <a href="#" class="dropdown-toggle sonata-ba-action" data-toggle="dropdown">
+                    <i class="fa fa-filter"></i>
+                    {{ 'link_filters'|trans({}, 'SonataAdminBundle') }} <b class="caret"></b>
+                </a>
 
                 <ul class="dropdown-menu" role="menu">
-                        {% for filter in admin.datagrid.filters %}
-                            {% if (filter.options['show_filter'] is same as(true) or filter.options['show_filter'] is null) %}
-                        <li>
-                            <a href="#" class="sonata-toggle-filter sonata-ba-action" filter-target="filter-{{ admin.uniqid }}-{{ filter.name }}" filter-container="filter-container-{{ admin.uniqid() }}">
+                    {% for filter in admin.datagrid.filters %}
+                        {% if (filter.options['show_filter'] is same as(true) or filter.options['show_filter'] is null) %}
+                            <li>
+                                <a href="#" class="sonata-toggle-filter sonata-ba-action" filter-target="filter-{{ admin.uniqid }}-{{ filter.name }}" filter-container="filter-container-{{ admin.uniqid() }}">
                                     <i class="fa {{ (filter.isActive() or filter.options['show_filter']) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>{{ filter.label|trans({}, filter.translationDomain) }}
-                            </a>
-                        </li>
-                            {% endif %}
+                                </a>
+                            </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </li>
