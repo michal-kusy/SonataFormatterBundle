@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Sonata\FormatterBundle\Controller;
 
 use Sonata\MediaBundle\Controller\MediaAdminController;
+use Sonata\MediaBundle\Model\CategoryManagerInterface;
+use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Symfony\Component\Form\FormRenderer;
 use Symfony\Component\Form\FormView;
@@ -24,6 +26,16 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class CkeditorAdminController extends MediaAdminController
 {
+
+    public static function getSubscribedServices(): array
+    {
+        $a = [
+                'sonata.media.manager.media' => MediaManagerInterface::class,
+                'sonata.media.manager.category' => '?' . CategoryManagerInterface::class,
+            ] + parent::getSubscribedServices();
+
+        return $a;
+    }
 
     /**
      * @throws AccessDeniedException
